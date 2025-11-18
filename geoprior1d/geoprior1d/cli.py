@@ -45,6 +45,14 @@ def main():
     )
 
     parser.add_argument(
+        "-j", "--n-processes",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Number of parallel processes (None=sequential, -1=all cores, >0=specific number)"
+    )
+
+    parser.add_argument(
         "-v", "--version",
         action="version",
         version="%(prog)s 1.0.0"
@@ -58,7 +66,8 @@ def main():
         Nreals=args.n_realizations,
         dmax=args.depth_max,
         dz=args.depth_step,
-        doPlot=1 if args.plot else 0
+        doPlot=1 if args.plot else 0,
+        n_processes=args.n_processes
     )
 
     print(f"\nDone! Output saved to: {filename}")

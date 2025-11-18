@@ -12,14 +12,32 @@ from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm
 import os
 
 
-def prior_generator(input_data, Nreals, dmax, dz, doPlot=0):
+def prior_generator(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None):
+    """
+    Generate 1D geological prior realizations.
+
+    Args:
+        input_data (str): Path to Excel input file with geological constraints.
+        Nreals (int): Number of realizations to generate.
+        dmax (float): Maximum depth in meters.
+        dz (float): Depth discretization step in meters.
+        doPlot (int): Display visualization plots (0=no, 1=yes).
+        n_processes (int, optional): Number of parallel processes.
+            None = sequential (default)
+            -1 = use all CPU cores
+            >0 = use specified number of cores
+
+    Returns:
+        name (str): Output HDF5 filename.
+        flag_vector (list): Flags indicating issues during generation.
+    """
     # Extract input parameters
 
     info, cmaps = extract_prior_info(input_data)
 
     # Create z vector and generate priors
     z_vec = np.arange(dz, dmax + dz, dz)
-    ms, ns, ws, flag_vector = get_prior_sample(info, z_vec, Nreals)
+    ms, ns, ws, flag_vector = get_prior_sample(info, z_vec, Nreals, n_processes)
 
     # Construct output filename
     base_name = info.get("filename", input_data)
