@@ -9,18 +9,16 @@ __version__ = "1.0.0"
 __author__ = "Your Name"
 
 # Import main API functions
-from .core import prior_generator
+from .core import geoprior1d, generate_prior_realizations, save_prior_to_hdf5
 from .io import extract_prior_info
 from .sampling import get_prior_sample
 from .colormaps import flj_log
 
-# Alias for more Pythonic naming
-generate_prior = prior_generator
-
 # Define public API
 __all__ = [
-    "prior_generator",
-    "generate_prior",
+    "geoprior1d",
+    "generate_prior_realizations",
+    "save_prior_to_hdf5",
     "extract_prior_info",
     "get_prior_sample",
     "flj_log",

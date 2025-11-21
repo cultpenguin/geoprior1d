@@ -1,6 +1,6 @@
 """Basic usage example for geoprior1d."""
 
-from geoprior1d import generate_prior
+from geoprior1d import geoprior1d
 
 # Set parameters
 input_file = "data/daugaard_matlab.xlsx"
@@ -9,8 +9,8 @@ depth_max = 90
 depth_step = 1
 plot = True
 
-# Run prior generator (using original parameter names for now)
-filename, flag_vector = generate_prior(
+# Run geoprior1d
+filename, flag_vector = geoprior1d(
     input_data=input_file,
     Nreals=n_realizations,
     dmax=depth_max,

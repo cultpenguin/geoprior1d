@@ -1,8 +1,7 @@
 """Quick test to verify geoprior1d functionality."""
 
-from geoprior1d import generate_prior
+from geoprior1d import geoprior1d, generate_prior_realizations
 from geoprior1d.io import extract_prior_info
-from geoprior1d.sampling import get_prior_sample
 import numpy as np
 import os
 
@@ -23,7 +22,7 @@ print("-" * 50)
 # Example 1: Standard usage - generates HDF5 file
 print("\n=== Example 1: Standard usage (with HDF5 output) ===")
 try:
-    filename, flag_vector = generate_prior(
+    filename, flag_vector = geoprior1d(
         input_data=input_file,
         Nreals=n_realizations,
         dmax=depth_max,
@@ -57,8 +56,8 @@ try:
     z_vec = np.arange(depth_step, depth_max + depth_step, depth_step)
 
     # Step 3: Generate prior samples (returns arrays directly)
-    # Note: get_prior_sample returns (lithology, resistivity, water, flags)
-    M2, M1, M3, flag_vector = get_prior_sample(
+    # Note: generate_prior_realizations returns (lithology, resistivity, water, flags)
+    M2, M1, M3, flag_vector = generate_prior_realizations(
         prior_struct,
         z_vec,
         n_realizations
@@ -74,9 +73,9 @@ try:
     print(f"  - Dimensions: ({n_realizations} realizations × {M2.shape[1]} depth points)")
     print(f"  - Classes present: {np.unique(M2).astype(int).tolist()}")
 
-    if M3 is not None:
+    if M3 is not None and M3.size > 0:
         print(f"\n✓ Water table array (M3) shape: {M3.shape}")
-        print(f"  - Dimensions: ({n_realizations} realizations × {M3.shape[1]} depth points)")
+        print(f"  - Dimensions: ({n_realizations} water depth values)")
         print(f"  - Depth range: {M3.min():.2f} to {M3.max():.2f} m")
     else:
         print("\n✓ No water table data (M3 is None)")
@@ -86,7 +85,7 @@ try:
     print(f"First 10 resistivity values: {M1[0, :10]}")
     print(f"First 10 lithology classes: {M2[0, :10]}")
     if M3 is not None:
-        print(f"First 10 water table depths: {M3[0, :10]}")
+        print(f"First 10 water table depths: {M3[0] if M3.size > 0 else None}")
 
     # Example: Compute statistics
     print("\n--- Statistics across all realizations ---")

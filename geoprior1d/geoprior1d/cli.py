@@ -1,7 +1,7 @@
 """Command-line interface for geoprior1d."""
 
 import argparse
-from .core import prior_generator
+from .core import geoprior1d
 
 
 def main():
@@ -68,8 +68,8 @@ def main():
 
     args = parser.parse_args()
 
-    # Run prior generator (using original parameter names)
-    filename, flag_vector = prior_generator(
+    # Run geoprior1d
+    filename, flag_vector = geoprior1d(
         input_data=args.input_file,
         Nreals=args.n_realizations,
         dmax=args.depth_max,
