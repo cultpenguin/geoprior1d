@@ -53,6 +53,14 @@ def main():
     )
 
     parser.add_argument(
+        "-o", "--output",
+        type=str,
+        default=None,
+        metavar="FILE",
+        help="Output HDF5 filename (default: auto-generated with timestamp)"
+    )
+
+    parser.add_argument(
         "-v", "--version",
         action="version",
         version="%(prog)s 1.0.0"
@@ -67,7 +75,8 @@ def main():
         dmax=args.depth_max,
         dz=args.depth_step,
         doPlot=1 if args.plot else 0,
-        n_processes=args.n_processes
+        n_processes=args.n_processes,
+        output_file=args.output
     )
 
     print(f"\nDone! Output saved to: {filename}")

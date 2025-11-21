@@ -12,7 +12,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm
 import os
 
 
-def prior_generator(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None):
+def prior_generator(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None, output_file=None):
     """
     Generate 1D geological prior realizations.
 
@@ -26,6 +26,8 @@ def prior_generator(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None):
             None = sequential (default)
             -1 = use all CPU cores
             >0 = use specified number of cores
+        output_file (str, optional): Output HDF5 filename. If None, auto-generates
+            filename with pattern: {input_base}_N{Nreals}_dmax{dmax}_{timestamp}.h5
 
     Returns:
         name (str): Output HDF5 filename.
@@ -40,14 +42,22 @@ def prior_generator(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None):
     ms, ns, ws, flag_vector = get_prior_sample(info, z_vec, Nreals, n_processes)
 
     # Construct output filename
-    base_name = info.get("filename", input_data)
-    
-    # Remove Excel extension if present
-    base_name, _ = os.path.splitext(base_name)
+    if output_file is not None:
+        # Use custom filename
+        name = output_file
+        # Ensure .h5 extension
+        if not name.endswith('.h5'):
+            name += '.h5'
+    else:
+        # Auto-generate filename
+        base_name = info.get("filename", input_data)
 
-    # Construct new filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-    name = f"{base_name}_N{Nreals}_dmax{dmax}_{timestamp}.h5"
+        # Remove Excel extension if present
+        base_name, _ = os.path.splitext(base_name)
+
+        # Construct new filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+        name = f"{base_name}_N{Nreals}_dmax{dmax}_{timestamp}.h5"
 
     # Remove existing file
     if os.path.exists(name):
