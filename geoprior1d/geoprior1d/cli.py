@@ -53,9 +53,9 @@ def main():
     parser.add_argument(
         "-j", "--n-processes",
         type=int,
-        default=None,
+        default=-1,
         metavar="N",
-        help="Number of parallel processes (None=sequential, -1=all cores, >0=specific number)"
+        help="Number of parallel processes (-1=all cores [default], 0=sequential, >0=specific number)"
     )
 
     parser.add_argument(

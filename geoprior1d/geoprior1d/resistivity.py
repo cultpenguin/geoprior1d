@@ -9,19 +9,27 @@ def prior_res_reals(info, m, o, layer_index, z_vec):
     else:
         n_unsat = None
 
-    # Input resistivities for each layer
-    for i in range(1, np.max(layer_index) + 1):
-        for j in range(1, np.max(info['Classes']['codes']) + 1):
-            mask = (m == j) & (layer_index == i)
-            if np.any(mask):
-                n[mask] = 10 ** (np.log10(info['Resistivity']['res'][j-1])
-                    + info['Resistivity']['res_unc'][j-1]
-                    * np.random.randn())
-                # Unsaturated resistivity above water table
-                if o != z_vec[0]:
-                    n_unsat[mask] = 10 ** (np.log10(info['Resistivity']['unsat_res'][j-1])
-                        + info['Resistivity']['unsat_res_unc'][j-1]
-                        * np.random.randn())
+    # Input resistivities for each layer (vectorized - only iterate over existing layers)
+    # Get unique layer indices that actually exist in the model
+    unique_layers = np.unique(layer_index)
+
+    for layer_id in unique_layers:
+        # Get the lithology class for this layer (constant within each layer)
+        layer_mask = layer_index == layer_id
+        lithology_class = int(m[layer_mask][0])  # All cells in a layer have same class
+
+        # Sample resistivity once for entire layer (creates spatial correlation)
+        res_value = 10 ** (np.log10(info['Resistivity']['res'][lithology_class-1])
+                          + info['Resistivity']['res_unc'][lithology_class-1]
+                          * np.random.randn())
+        n[layer_mask] = res_value
+
+        # Unsaturated resistivity above water table
+        if o != z_vec[0]:
+            unsat_value = 10 ** (np.log10(info['Resistivity']['unsat_res'][lithology_class-1])
+                                + info['Resistivity']['unsat_res_unc'][lithology_class-1]
+                                * np.random.randn())
+            n_unsat[layer_mask] = unsat_value
 
     # Apply unsaturated values above water table
     if o != 0:

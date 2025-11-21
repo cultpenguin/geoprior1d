@@ -1,6 +1,95 @@
 import numpy as np
 import random
 
+
+def _check_layer_thickness_constraints(thick_sections, thick_layers, types_layers, class_max_thick, class_min_thick, tolerance=1.05):
+    """Check if layer thicknesses violate min/max constraints.
+
+    Returns:
+        int: Number of constraint violations
+    """
+    checksum = 0
+    for i in np.where(thick_sections != 0)[0]:
+        idxs = np.array([t-1 for t in types_layers[i]])
+        max_violations = np.sum(thick_layers[i] >= tolerance * class_max_thick[idxs])
+        min_violations = np.sum(thick_layers[i] <= (1/tolerance) * class_min_thick[idxs])
+        checksum += max_violations + min_violations
+    return checksum
+
+
+def _check_section_depth_constraints(thick_sections, N, min_depths):
+    """Check if cumulative section depths meet minimum depth requirements.
+
+    Returns:
+        int: 1 if constraints violated, 0 otherwise
+    """
+    for i in range(1, N):
+        if np.sum(thick_sections[:i]) < min_depths[i]:
+            return 1
+    return 0
+
+
+def _generate_section_layers(i, is_active, info, existing_N_layers=None):
+    """Generate layers for a single geological section.
+
+    Args:
+        i: Section index
+        is_active: Whether this section should be generated (based on frequency)
+        info: Geological information dictionary
+        existing_N_layers: If provided, reuse this count instead of regenerating (default: None)
+
+    Returns:
+        tuple: (thick_section, N_layers_count, types_layer_list, thick_layer_array)
+    """
+    if not is_active:
+        return 0, 0, [], np.array([])
+
+    # Thickness of unit
+    thick_section = np.random.rand() * (
+        info['Sections']['max_thick'][i] - info['Sections']['min_thick'][i]
+    ) + info['Sections']['min_thick'][i]
+
+    # Number of layers (use existing if provided, otherwise regenerate)
+    if existing_N_layers is not None:
+        N_layers_count = existing_N_layers
+    else:
+        N_layers_count = np.random.randint(
+            info['Sections']['min_layers'][i],
+            info['Sections']['max_layers'][i] + 1)
+
+    # Types of layers
+    if info['Sections']['repeat'][i] == 1 or N_layers_count < 2:
+        # Allow repeating layers or single layer
+        types_layer_list = random.choices(
+            info['Sections']['types'][i],
+            weights=info['Sections']['probabilities'][i],
+            k=N_layers_count)
+    else:
+        # Force alternation: no adjacent identical layers
+        vec = [random.choices(
+            info['Sections']['types'][i],
+            weights=info['Sections']['probabilities'][i],
+            k=1)[0]]
+        for j in range(1, N_layers_count):
+            available_types = [t for t in info['Sections']['types'][i] if t != vec[j-1]]
+            available_probs = [p for t, p in zip(info['Sections']['types'][i],
+                                                 info['Sections']['probabilities'][i])
+                             if t != vec[j-1]]
+            vec.append(random.choices(available_types, weights=available_probs, k=1)[0])
+        types_layer_list = vec
+
+    # Thicknesses of layers
+    t_layers = []
+    for t in types_layer_list:
+        idx = t - 1
+        t_layers.append(
+            np.random.rand() * (info['Classes']['max_thick'][idx] - info['Classes']['min_thick'][idx])
+            + info['Classes']['min_thick'][idx])
+    thick_layer_array = np.array(t_layers)
+
+    return thick_section, N_layers_count, types_layer_list, thick_layer_array
+
+
 def prior_lith_reals(info, z, flag_vector):
     # Number of units
     N = info['Sections']['N_sections']
@@ -18,7 +107,7 @@ def prior_lith_reals(info, z, flag_vector):
     if N == 1:
         return m, layer_index, flag_vector
 
-    #Random vector for frequency of layers
+    # Random vector for frequency of layers
     r = np.random.rand(N-1)
 
     # Preallocate vectors
@@ -27,129 +116,48 @@ def prior_lith_reals(info, z, flag_vector):
     types_layers = [None] * (N-1)
     thick_layers = [None] * (N-1)
 
-    # Draw random values
+    # Initial draw using extracted function
     for i in range(N-1):
-        if r[i] <= info['Sections']['frequency'][i]:
-            # Thickness of unit
-            thick_sections[i] = np.random.rand() * (
-                info['Sections']['max_thick'][i] - info['Sections']['min_thick'][i]
-            ) + info['Sections']['min_thick'][i]
-
-            # Number of layers
-            N_layers[i] = np.random.randint(
-                info['Sections']['min_layers'][i],
-                info['Sections']['max_layers'][i] + 1)
-
-            # Types of layers
-            if info['Sections']['repeat'][i] == 1 or N_layers[i] < 2:
-                types_layers[i] = random.choices(
-                    info['Sections']['types'][i],
-                    weights=info['Sections']['probabilities'][i],
-                    k=N_layers[i])
-            else:
-                vec = [random.choices(
-                    info['Sections']['types'][i],
-                    weights=info['Sections']['probabilities'][i],
-                    k=1)[0]]
-                for j in range(1, N_layers[i]):
-                    available_types = [t for t in info['Sections']['types'][i] if t != vec[j-1]]
-                    available_probs = [p for t, p in zip(info['Sections']['types'][i], info['Sections']['probabilities'][i]) if t != vec[j-1]]
-                    vec.append(random.choices(available_types, weights=available_probs, k=1)[0])
-                types_layers[i] = vec
-
-            # Thicknesses of layers
-            t_layers = []
-            for t in types_layers[i]:
-                idx = t - 1
-                t_layers.append(
-                    np.random.rand() * (info['Classes']['max_thick'][idx] - info['Classes']['min_thick'][idx])
-                    + info['Classes']['min_thick'][idx])
-            thick_layers[i] = np.array(t_layers)
-
-        else:
-            thick_sections[i] = 0
-            N_layers[i] = 0
-            types_layers[i] = []
-            thick_layers[i] = np.array([])
+        is_active = r[i] <= info['Sections']['frequency'][i]
+        thick_sections[i], N_layers[i], types_layers[i], thick_layers[i] = \
+            _generate_section_layers(i, is_active, info)
 
     # Normalize thicknesses
     if N > 1:
         for i in np.where(thick_sections != 0)[0]:
             thick_layers[i] = thick_layers[i] / (np.sum(thick_layers[i]) / thick_sections[i])
 
-    # Check constraints
-    tries = 1
-    checksum_layers = 0
-    for i in np.where(thick_sections != 0)[0]:
-        idxs = [t-1 for t in types_layers[i]]
-        layers_max_check = np.sum(thick_layers[i] >= 1.05 * np.array([info['Classes']['max_thick'][j] for j in idxs]))
-        layers_min_check = np.sum(thick_layers[i] <= (1/1.05) * np.array([info['Classes']['min_thick'][j] for j in idxs]))
-        checksum_layers += layers_max_check + layers_min_check
+    # Cache class constraints as numpy arrays (avoid recreating in every loop iteration)
+    class_max_thick = np.array(info['Classes']['max_thick'])
+    class_min_thick = np.array(info['Classes']['min_thick'])
+    section_min_depths = np.array(info['Sections']['min_depth'])
 
-    checksum_sections = 0
-    for i in range(1, N):
-        if np.sum(thick_sections[:i]) < info['Sections']['min_depth'][i]:
-            checksum_sections = 1
-            break
+    # Check initial constraints using helper functions
+    tries = 1
+    checksum_layers = _check_layer_thickness_constraints(
+        thick_sections, thick_layers, types_layers, class_max_thick, class_min_thick)
+    checksum_sections = _check_section_depth_constraints(
+        thick_sections, N, section_min_depths)
 
     # Redraw loop
     while checksum_layers > 0 or checksum_sections > 0:
+        # Regenerate all sections using extracted function
         for i in range(N-1):
-            if r[i] <= info['Sections']['frequency'][i]:
-                if tries > 100:
-                    N_layers[i] = np.random.randint(
-                        info['Sections']['min_layers'][i],
-                        info['Sections']['max_layers'][i] + 1)
-                thick_sections[i] = np.random.rand() * (
-                    info['Sections']['max_thick'][i] - info['Sections']['min_thick'][i]
-                ) + info['Sections']['min_thick'][i]
-
-                if info['Sections']['repeat'][i] == 1 or N_layers[i] < 2:
-                    types_layers[i] = random.choices(
-                        info['Sections']['types'][i],
-                        weights=info['Sections']['probabilities'][i],
-                        k=N_layers[i])
-                else:
-                    vec = [random.choices(
-                        info['Sections']['types'][i],
-                        weights=info['Sections']['probabilities'][i],
-                        k=1)[0]]
-                    for j in range(1, N_layers[i]):
-                        available_types = [t for t in info['Sections']['types'][i] if t != vec[j-1]]
-                        available_probs = [p for t, p in zip(info['Sections']['types'][i], info['Sections']['probabilities'][i]) if t != vec[j-1]]
-                        vec.append(random.choices(available_types, weights=available_probs, k=1)[0])
-                    types_layers[i] = vec
-
-                t_layers = []
-                for t in types_layers[i]:
-                    idx = t - 1
-                    t_layers.append(
-                        np.random.rand() * (info['Classes']['max_thick'][idx] - info['Classes']['min_thick'][idx])
-                        + info['Classes']['min_thick'][idx])
-                thick_layers[i] = np.array(t_layers)
-
-            else:
-                thick_sections[i] = 0
-                N_layers[i] = 0
-                types_layers[i] = []
-                thick_layers[i] = np.array([])
+            is_active = r[i] <= info['Sections']['frequency'][i]
+            # Keep existing N_layers unless tries > 100, then allow regeneration
+            existing_N = None if tries > 100 else N_layers[i]
+            thick_sections[i], N_layers[i], types_layers[i], thick_layers[i] = \
+                _generate_section_layers(i, is_active, info, existing_N_layers=existing_N)
 
         if N > 1:
             for i in np.where(thick_sections != 0)[0]:
                 thick_layers[i] = thick_layers[i] / (np.sum(thick_layers[i]) / thick_sections[i])
 
-        checksum_layers = 0
-        for i in np.where(thick_sections != 0)[0]:
-            idxs = [t-1 for t in types_layers[i]]  # ✅ fix
-            layers_max_check = np.sum(thick_layers[i] >= 1.05 * np.array([info['Classes']['max_thick'][j] for j in idxs]))
-            layers_min_check = np.sum(thick_layers[i] <= (1/1.05) * np.array([info['Classes']['min_thick'][j] for j in idxs]))
-            checksum_layers += layers_max_check + layers_min_check
-
-        checksum_sections = 0
-        for i in range(1, N):
-            if np.sum(thick_sections[:i]) < info['Sections']['min_depth'][i]:
-                checksum_sections = 1
-                break
+        # Re-check constraints using cached arrays and helper functions
+        checksum_layers = _check_layer_thickness_constraints(
+            thick_sections, thick_layers, types_layers, class_max_thick, class_min_thick)
+        checksum_sections = _check_section_depth_constraints(
+            thick_sections, N, section_min_depths)
 
         tries += 1
         if tries > 1000:

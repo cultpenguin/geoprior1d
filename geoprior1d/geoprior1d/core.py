@@ -12,7 +12,7 @@ from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm
 import os
 
 
-def generate_prior_realizations(info, z_vec, Nreals, n_processes=None):
+def generate_prior_realizations(info, z_vec, Nreals, n_processes=-1):
     """
     Generate prior realizations of lithology, resistivity, and water level.
 
@@ -22,9 +22,9 @@ def generate_prior_realizations(info, z_vec, Nreals, n_processes=None):
         info (dict): Prior information dictionary from extract_prior_info().
         z_vec (array): Depth vector (output from np.arange(dz, dmax + dz, dz)).
         Nreals (int): Number of realizations to generate.
-        n_processes (int, optional): Number of parallel processes.
-            None = sequential (default)
-            -1 = use all CPU cores
+        n_processes (int, optional): Number of parallel processes (default: -1).
+            -1 = use all CPU cores (default, recommended for performance)
+            0 or None = sequential execution (slower, for debugging)
             >0 = use specified number of cores
 
     Returns:
@@ -137,7 +137,7 @@ def save_prior_to_hdf5(output_file, ms, ns, ws, info, cmaps, z_vec, dmax, dz,
     return name
 
 
-def geoprior1d(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None, output_file=None):
+def geoprior1d(input_data, Nreals, dmax, dz, doPlot=0, n_processes=-1, output_file=None):
     """
     Generate 1D geological prior realizations and save to HDF5.
 
@@ -153,9 +153,9 @@ def geoprior1d(input_data, Nreals, dmax, dz, doPlot=0, n_processes=None, output_
         dmax (float): Maximum depth in meters.
         dz (float): Depth discretization step in meters.
         doPlot (int): Display visualization plots (0=no, 1=yes).
-        n_processes (int, optional): Number of parallel processes.
-            None = sequential (default)
-            -1 = use all CPU cores
+        n_processes (int, optional): Number of parallel processes (default: -1).
+            -1 = use all CPU cores (default, recommended for performance)
+            0 or None = sequential execution (slower, for debugging)
             >0 = use specified number of cores
         output_file (str, optional): Output HDF5 filename. If None, auto-generates
             filename with pattern: {input_base}_N{Nreals}_dmax{dmax}_{timestamp}.h5

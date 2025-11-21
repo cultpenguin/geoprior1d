@@ -44,7 +44,7 @@ def _generate_single_realization(i, info, z_vec, seed_offset=0):
     return m, n, o, local_flag
 
 
-def get_prior_sample(info, z_vec, Nreals, n_processes=None):
+def get_prior_sample(info, z_vec, Nreals, n_processes=-1):
     """
     Generate prior samples of lithology, resistivity, and water level.
 
@@ -52,9 +52,9 @@ def get_prior_sample(info, z_vec, Nreals, n_processes=None):
         info (dict): Prior information dictionary.
         z_vec (array-like): Depths to layer bottoms.
         Nreals (int): Number of realizations to generate.
-        n_processes (int, optional): Number of parallel processes.
-            None = sequential (default)
-            -1 = use all CPU cores
+        n_processes (int, optional): Number of parallel processes (default: -1).
+            -1 = use all CPU cores (default, recommended for performance)
+            0 or None = sequential execution (slower, for debugging)
             >0 = use specified number of cores
 
     Returns:
@@ -65,16 +65,13 @@ def get_prior_sample(info, z_vec, Nreals, n_processes=None):
     """
 
     Nz = len(z_vec)
-    ms = np.zeros((Nreals, Nz))  # Lithology samples
-    ns = np.zeros((Nreals, Nz))  # Resistivity samples
-    os = np.zeros(Nreals)        # Water level samples
+    # Use float32 for memory efficiency (half the memory of float64)
+    ms = np.zeros((Nreals, Nz), dtype=np.float32)  # Lithology samples
+    ns = np.zeros((Nreals, Nz), dtype=np.float32)  # Resistivity samples
+    os = np.zeros(Nreals, dtype=np.float32)        # Water level samples
     flag_vector = [0, 0, 0]      # Simulation status flags
 
-    # Even probabilities if not specified
-    for i in range(len(info['Sections']['probabilities'])):
-        if info['Sections']['probabilities'][i][0] == 1:
-              n_types = len(info['Sections']['types'][i])
-              info['Sections']['probabilities'][i] = np.ones(n_types) / n_types
+    # Note: Probability normalization now handled in extract_prior_info() preprocessing
 
     start_time = time.time()
     seed_offset = np.random.randint(0, 1e9)  # For reproducibility across runs
