@@ -28,8 +28,9 @@ keywords = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Physics",
-    "Topic :: Scientific/Engineering :: Geology",
+    "Topic :: Scientific/Engineering :: GIS",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
