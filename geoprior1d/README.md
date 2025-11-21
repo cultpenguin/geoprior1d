@@ -1,7 +1,6 @@
 # geoprior1d
 
 [![PyPI version](https://badge.fury.io/py/geoprior1d.svg)](https://badge.fury.io/py/geoprior1d)
-[![PyPI downloads](https://img.shields.io/pypi/dm/geoprior1d.svg)](https://pypi.org/project/geoprior1d/)
 [![Python versions](https://img.shields.io/pypi/pyversions/geoprior1d.svg)](https://pypi.org/project/geoprior1d/)
 [![License](https://img.shields.io/pypi/l/geoprior1d.svg)](https://github.com/yourusername/geoprior1d/blob/main/LICENSE)
 
