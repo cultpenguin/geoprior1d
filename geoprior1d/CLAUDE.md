@@ -67,11 +67,23 @@ pip install geoprior1d
 
 ### Command Line:
 ```bash
-# Basic usage
+# Copy example file and show usage help (doesn't run, just prepares the file)
+geoprior1d
+
+# Then run with the copied example file
+geoprior1d daugaard_standard.xlsx --plot
+
+# Or use your own input file
 geoprior1d input.xlsx -n 10000 -d 90 --plot
 
+# With custom output filename
+geoprior1d input.xlsx -n 10000 -d 90 -o my_output.h5
+
+# With parallel processing (use all CPU cores)
+geoprior1d input.xlsx -n 10000 -d 90 -j -1
+
 # Full options
-geoprior1d input.xlsx --n-realizations 10000 --depth-max 90 --depth-step 1 --plot
+geoprior1d input.xlsx --n-realizations 10000 --depth-max 90 --depth-step 1 --plot --n-processes 4 --output result.h5
 
 # Get help
 geoprior1d --help
@@ -79,7 +91,7 @@ geoprior1d --help
 
 ### Python API:
 ```python
-from geoprior1d import generate_prior
+from geoprior1d import geoprior1d
 
 # Parameters
 input_file = "daugaard_matlab.xlsx"  # Input Excel file
@@ -87,9 +99,11 @@ Nreals = 10000                        # Number of realizations
 dmax = 90                             # Maximum depth (m)
 dz = 1                                # Depth discretization (m)
 doPlot = 1                            # Show plots (0=no, 1=yes)
+n_processes = None                    # Parallel processes (None=sequential, -1=all cores, >0=specific number)
+output_file = None                    # Custom output filename (None=auto-generate with timestamp)
 
 # Generate
-filename, flag_vector = generate_prior(input_file, Nreals, dmax, dz, doPlot)
+filename, flag_vector = geoprior1d(input_file, Nreals, dmax, dz, doPlot, n_processes, output_file)
 ```
 
 ### Dependencies

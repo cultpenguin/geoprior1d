@@ -25,21 +25,39 @@ pip install -e .
 ### Command Line
 
 ```bash
+# Copy example file and show usage (doesn't run, just prepares the file)
+geoprior1d
+
+# Then run with the copied example file
+geoprior1d daugaard_standard.xlsx --plot
+
+# Or use your own input file
 geoprior1d input.xlsx -n 10000 -d 90 --plot
+
+# With custom output filename
+geoprior1d input.xlsx -n 10000 -d 90 -o my_output.h5
+
+# With parallel processing (use all CPU cores)
+geoprior1d input.xlsx -n 10000 -d 90 -j -1
+
+# All options combined
+geoprior1d input.xlsx -n 10000 -d 90 -s 1 --plot -j 4 -o output.h5
 ```
 
 ### Python API
 
 ```python
-from geoprior1d import generate_prior
+from geoprior1d import geoprior1d
 
 # Generate priors
-filename, flags = generate_prior(
+filename, flags = geoprior1d(
     input_data="daugaard_matlab.xlsx",
     Nreals=10000,
     dmax=90,
     dz=1,
-    doPlot=1
+    doPlot=1,
+    n_processes=None,      # Optional: use -1 for all cores, or specify number
+    output_file=None       # Optional: specify custom output filename
 )
 
 print(f"Output saved to: {filename}")
