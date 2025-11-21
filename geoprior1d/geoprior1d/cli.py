@@ -2,6 +2,7 @@
 
 import argparse
 from .core import geoprior1d
+from . import __version__
 
 
 def main():
@@ -63,7 +64,7 @@ def main():
     parser.add_argument(
         "-v", "--version",
         action="version",
-        version="%(prog)s 1.0.0"
+        version=f"%(prog)s {__version__}"
     )
 
     args = parser.parse_args()
