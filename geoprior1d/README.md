@@ -4,6 +4,11 @@
 
 ## Installation
 
+### From PyPI
+```bash
+pip install geoprior1d
+```
+
 ### From source
 ```bash
 cd geoprior1d
@@ -13,14 +18,6 @@ pip install .
 
 # Development installation (editable mode)
 pip install -e .
-
-# With development tools
-pip install -e ".[dev]"
-```
-
-### From PyPI (after publishing)
-```bash
-pip install geoprior1d
 ```
 
 ## Quick Start
@@ -50,39 +47,19 @@ print(f"Output saved to: {filename}")
 
 ## Input File Format
 
-See [CLAUDE.md](CLAUDE.md) for detailed format specification.
+See [CLAUDE.md](CLAUDE.md) for detailed format specification and code architecture.
 
-## Development
+## Requirements
 
-### Install development dependencies
-```bash
-pip install -e ".[dev]"
-# or
-pip install -r requirements-dev.txt
-```
+- Python >= 3.8
+- numpy >= 1.20.0
+- h5py >= 3.0.0
+- matplotlib >= 3.3.0
+- pandas >= 1.2.0
+- scipy >= 1.6.0
+- tqdm >= 4.60.0
 
-### Run tests
-```bash
-pytest
-pytest --cov=geoprior1d  # With coverage
-```
-
-### Code formatting
-```bash
-black geoprior1d/
-isort geoprior1d/
-flake8 geoprior1d/
-```
-
-## Project Structure
-
-This project uses modern Python packaging with `pyproject.toml`. See [MODERN_PACKAGING.md](MODERN_PACKAGING.md) for details.
-
-## Documentation
-
-- [CLAUDE.md](CLAUDE.md) - Code architecture and usage
-- [MODERN_PACKAGING.md](MODERN_PACKAGING.md) - Packaging guide
-- [CONVERSION_SUMMARY.md](CONVERSION_SUMMARY.md) - Conversion details
+All dependencies are automatically installed via pip.
 
 ## License
 
