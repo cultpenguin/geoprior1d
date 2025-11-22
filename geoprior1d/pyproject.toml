@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprior1d"
-version = "0.9.4"
+version = "0.9.5"
 description = "1D geological prior generator for stochastic lithology and resistivity modeling"
 readme = "README.md"
 requires-python = ">=3.8"
