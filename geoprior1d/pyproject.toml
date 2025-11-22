@@ -59,4 +59,7 @@ Issues = "https://github.com/yourusername/geoprior1d/issues"
 Changelog = "https://github.com/yourusername/geoprior1d/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["geoprior1d"]
+packages = ["geoprior1d", "examples"]
+
+[tool.setuptools.package-data]
+"examples" = ["data/daugaard_standard.xlsx"]
