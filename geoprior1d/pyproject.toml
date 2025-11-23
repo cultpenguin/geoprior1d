@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprior1d"
-version = "0.9.6"
+version = "0.9.7"
 description = "1D geological prior generator for stochastic lithology and resistivity modeling"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -46,6 +46,7 @@ dependencies = [
     "pandas>=1.2.0",
     "scipy>=1.6.0",
     "tqdm>=4.60.0",
+    "openpyxl>=3.0.0",
 ]
 
 [project.scripts]
