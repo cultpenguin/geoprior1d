@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoprior1d"
-version = "0.9.5"
+version = "0.9.6"
 description = "1D geological prior generator for stochastic lithology and resistivity modeling"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -59,7 +59,7 @@ Issues = "https://github.com/yourusername/geoprior1d/issues"
 Changelog = "https://github.com/yourusername/geoprior1d/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["geoprior1d", "examples"]
+packages = ["geoprior1d", "examples", "examples.data"]
 
 [tool.setuptools.package-data]
-"examples" = ["data/daugaard_standard.xlsx"]
+"examples.data" = ["*.xlsx"]
