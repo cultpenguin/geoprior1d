@@ -80,6 +80,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed format specification and code architectu
 - pandas >= 1.2.0
 - scipy >= 1.6.0
 - tqdm >= 4.60.0
+- openpyxl >= 3.0.0
 
 All dependencies are automatically installed via pip.
 
