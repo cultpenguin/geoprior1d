@@ -98,7 +98,7 @@ def save_prior_to_hdf5(output_file, ms, ns, ws, info, cmaps, z_vec, dmax, dz,
         dset_M2 = f.create_dataset('M2', data=ms.astype(np.int16))
         dset_M2.attrs['is_discrete'] = 1
         dset_M2.attrs['name'] = 'Lithology'
-        dset_M2.attrs['class_name'] = np.array(info['Classes']['names'], dtype='S')
+        dset_M2.attrs['class_name'] = np.array([s.encode('utf-8') for s in info['Classes']['names']], dtype='S')
         dset_M2.attrs['class_id'] = info['Classes']['codes']
         dset_M2.attrs['x'] = np.arange(0, dmax, dz)
         dset_M2.attrs['clim'] = [0.5, len(info['Classes']['codes']) + 0.5]
