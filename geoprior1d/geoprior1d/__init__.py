@@ -5,6 +5,9 @@ A Python package for generating stochastic realizations of subsurface
 lithology and resistivity models based on geological constraints.
 """
 
+import multiprocessing
+multiprocessing.freeze_support()
+
 __version__ = "0.9.0"
 
 # Import main API functions

@@ -1,8 +1,11 @@
 import numpy as np
 import random
 import time
+import sys
+import types
+import os
+import multiprocessing
 from tqdm import tqdm
-from multiprocessing import Pool, cpu_count
 from functools import partial
 from .lithology import prior_lith_reals
 from .water import prior_water_reals
@@ -80,9 +83,9 @@ def get_prior_sample(info, z_vec, Nreals, n_processes=-1):
     if n_processes is not None and n_processes != 0:
         # Determine number of workers
         if n_processes == -1:
-            n_workers = cpu_count()
+            n_workers = multiprocessing.cpu_count()
         else:
-            n_workers = min(n_processes, cpu_count())
+            n_workers = min(n_processes, multiprocessing.cpu_count())
 
         print(f"Using {n_workers} parallel processes...")
 
@@ -92,14 +95,29 @@ def get_prior_sample(info, z_vec, Nreals, n_processes=-1):
                         z_vec=z_vec,
                         seed_offset=seed_offset)
 
-        # Process in parallel with progress bar
-        with Pool(processes=n_workers) as pool:
-            results = list(tqdm(
-                pool.imap(worker, range(Nreals)),
-                total=Nreals,
-                desc="Generating priors",
-                unit="real"
-            ))
+        # Use spawn on macOS/Windows to avoid fork restrictions; fork on Linux
+        is_spawn = os.name == 'nt' or (os.name == 'posix' and os.uname().sysname == 'Darwin')
+        ctx = multiprocessing.get_context('spawn') if is_spawn else multiprocessing.get_context('fork')
+
+        # Patch __main__.__spec__ so spawn workers do not re-execute the user's
+        # script (same technique used in the integrate project).
+        _main_module = sys.modules.get('__main__')
+        _spec_patched = _main_module is not None and getattr(_main_module, '__spec__', None) is None
+        if _spec_patched:
+            _main_module.__spec__ = types.SimpleNamespace(name='__main__')
+
+        try:
+            # Process in parallel with progress bar
+            with ctx.Pool(processes=n_workers) as pool:
+                results = list(tqdm(
+                    pool.imap(worker, range(Nreals)),
+                    total=Nreals,
+                    desc="Generating priors",
+                    unit="real"
+                ))
+        finally:
+            if _spec_patched:
+                _main_module.__spec__ = None
 
         # Unpack results
         for i, (m, n, o, local_flag) in enumerate(results):
