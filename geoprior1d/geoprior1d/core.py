@@ -1,14 +1,10 @@
-from .visualization import plot_resistivity_distributions, plot_realizations
 import numpy as np
 import h5py
-import matplotlib.pyplot as plt
 import pandas as pd
 from .io import extract_prior_info
 from .sampling import get_prior_sample
 from .colormaps import flj_log
-from scipy.stats import norm
 from datetime import datetime
-from matplotlib.colors import ListedColormap, BoundaryNorm, LogNorm
 import os
 
 
@@ -179,6 +175,7 @@ def geoprior1d(input_data, Nreals, dmax, dz, doPlot=0, n_processes=-1, output_fi
 
     # Plotting
     if doPlot == 1:
+        from .visualization import plot_resistivity_distributions, plot_realizations
         plot_resistivity_distributions(info)
         plot_realizations(z_vec, ms, ns, ws, info, cmaps, Nreals)
 

@@ -3,7 +3,7 @@ import random
 import time
 import sys
 import types
-import os
+import os as _os
 import multiprocessing
 from tqdm import tqdm
 from functools import partial
@@ -67,6 +67,9 @@ def get_prior_sample(info, z_vec, Nreals, n_processes=-1):
         flag_vector (list): Flags indicating issues during generation.
     """
 
+    if multiprocessing.current_process().name != 'MainProcess':
+        return None, None, None, None
+
     Nz = len(z_vec)
     # Use float32 for memory efficiency (half the memory of float64)
     ms = np.zeros((Nreals, Nz), dtype=np.float32)  # Lithology samples
@@ -96,7 +99,7 @@ def get_prior_sample(info, z_vec, Nreals, n_processes=-1):
                         seed_offset=seed_offset)
 
         # Use spawn on macOS/Windows to avoid fork restrictions; fork on Linux
-        is_spawn = os.name == 'nt' or (os.name == 'posix' and os.uname().sysname == 'Darwin')
+        is_spawn = _os.name == 'nt' or (_os.name == 'posix' and _os.uname().sysname == 'Darwin')
         ctx = multiprocessing.get_context('spawn') if is_spawn else multiprocessing.get_context('fork')
 
         # Patch __main__.__spec__ so spawn workers do not re-execute the user's
